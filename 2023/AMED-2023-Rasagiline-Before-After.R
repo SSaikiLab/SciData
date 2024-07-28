@@ -1,0 +1,68 @@
+# Load packages
+library(ggfortify)
+library(pcaExplorer)
+library(factoextra)
+library(readr)
+library(readxl)
+library(dplyr)
+library(matrixStats)
+library(ggplot2)
+
+# Load Data
+X2023_Rasagiline <- read_excel("AMED-2023-Rasagiline-Before-After.xlsx") %>% as.data.frame()
+row.names(X2023_Rasagiline) <- X2023_Rasagiline$Gene 
+X2023_Rasagiline <- X2023_Rasagiline[,2:101]
+miRNA <- X2023_Rasagiline %>% as.matrix()
+row.names(miRNA) <- row.names(X2023_Rasagiline)
+
+# miRNA detected in less than half participants of the cohort is regarded as not efficiently detected
+miRNA <- miRNA[rowMedians(miRNA) > 0,] 
+
+# For remaining undetected miRNA,
+# Their values shall be assigned as half of the minimum value of the detected target miRNA
+miRNA[miRNA == 0] <- NA
+nas <- which(is.na(miRNA), arr.ind = TRUE)
+# 1 is added to avoid the possible production of unwanted 0s
+miRNA[nas] <- round((rowMins(miRNA, na.rm = TRUE) [nas[,1]]+1)/2)
+miRNA <- miRNA %>% as.data.frame()
+
+
+# DESeq2 for treatment
+library(DESeq2)
+library(zoo)
+Time <- c(replicate(50, "Before"), replicate(50, "After"))
+coldata <- cbind(c(colnames(miRNA)), Time) %>% as.data.frame()
+row.names(coldata) <- coldata$V1
+colnames(coldata) <- c("Number", "Time")
+dds <- DESeqDataSetFromMatrix(countData = miRNA, colData = coldata, design = ~Time)
+dds$Time <- relevel(dds$Time, "Before", "After")
+dds <- DESeq(dds)
+res <- results(dds)
+results <- res %>% as.data.frame()
+results <- results %>% 
+  mutate(miRNA = row.names(results))
+results$miRNA <- gsub(".*_","",results$miRNA)
+results$Rank = results$log2FoldChange * abs(log10(results$padj))
+
+# PCA
+vsdata <- varianceStabilizingTransformation(dds, blind = FALSE)
+plotPCA(vsdata, intgroup = "Time")
+pcaExplorer(dds = dds, dst = vsdata)
+
+
+# DEG
+miRNA_Sig_In <- results[results$log2FoldChange > 0 & results$padj <= 0.05, ]
+miRNA_Sig_De <- results[results$log2FoldChange < 0 & results$padj <= 0.05, ]
+write.csv(miRNA_Sig_In, "Increased-miRNA.csv")
+write.csv(miRNA_Sig_De, "Decreased-miRNA.csv")
+
+
+# VolcanoPlot
+library(EnhancedVolcano)
+EnhancedVolcano(results, x = "log2FoldChange", y = "padj", lab = results$miRNA,
+                pCutoff = 0.05, FCcutoff = 1, legendIconSize = 5, title = NULL,
+                subtitle = NULL, gridlines.major = FALSE, gridlines.minor = FALSE, selectLab = FALSE, legendLabels = c("NS", "FC", "pval", "FC&pval"))
+
+write.csv(miRNA, "Countdata_Trimmed.csv")
+write.csv(results, "GSEA-Raw-Data.csv")
+
