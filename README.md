@@ -2,7 +2,7 @@
 
 Parkinson’s disease (PD), the second most prevalent neurodegenerative disorder, was classically attributed to alpha-synuclein aggregation and consequent loss of dopaminergic neurons in the substantia nigra pars compacta. Recently, emerging evidence suggested a broader spectrum of contributing factors, including exosome-mediated intercellular communication, which can potentially serve as biomarkers and therapeutic targets. However, there is a remarkable lack of comprehensive studies that connect the serum exosome microRNA (miRNA) transcriptome with demographic, clinical, and neuroimaging data in PD patients. Here, we present serum exosome miRNA transcriptome data generated from four cohort studies. Two of these studies include 96 PD patients and 80 age- and gender-matched controls, with anonymized demographic, clinical, and neuroimaging data provided for PD patients. The other two studies involve 96 PD patients who were evaluated both before and after one year of treatment with rasagiline, a widely prescribed anti-parkinsonism drug. Together, the datasets provide a valuable source for understanding pathogenesis and discovering biomarkers and therapeutic targets in PD.
 
-This GitHub repository serves as a preliminary analysis for the Gene Expression Omnibus GSE269781 dataset, and users are encouraged to download quality-controlled files directly from the GEO.
+This GitHub repository serves as a preliminary analysis for the Gene Expression Omnibus GSE269781 dataset, and users are encouraged to use count matrix in the root folder or download quality-controlled files directly from the GEO.
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE269781
 
 # 2020/2021
